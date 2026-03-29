@@ -1,73 +1,84 @@
 ---
 name: multi-agent-memory
 description: >
-  Sistema de memória persistente para projetos desenvolvidos por múltiplos agentes de IA.
-  Use esta skill SEMPRE que iniciar qualquer tarefa de desenvolvimento em um projeto que contenha
-  o diretório `/memory`. Também use quando o usuário pedir para criar, consultar, ou atualizar
-  memórias de projeto, registrar decisões de arquitetura, documentar uma feature nova, ou quando
-  precisar entender o contexto atual do projeto antes de codificar. Gatilhos incluem: menções a
-  "memória", "memory", "contexto do projeto", "decisão de arquitetura", "design system",
-  "o que já foi feito", "histórico de decisões", ou qualquer tarefa de código em repo com /memory.
+  Manages persistent project memory for multi-agent development. Creates, reads, and updates
+  a /memory directory that stores architectural decisions, feature documentation, design system
+  tokens, and project context across AI agent sessions. Use when starting any coding task in a
+  repo with a /memory directory, when the user asks to "register a decision", "initialize memory",
+  "update context", "what was already done", "project history", "document this feature", or any
+  variation of "memory", "context", "decisions log". Also triggers on Portuguese equivalents:
+  "registra essa decisão", "qual o contexto", "o que já foi feito", "inicializa a memória",
+  "atualiza o índice", "documenta essa feature". Do NOT use for general documentation generation,
+  README writing, or changelog management unrelated to the /memory system.
+license: MIT
+metadata:
+  author: pedrollcs
+  version: "1.1.0"
+  tags: ["memory", "multi-agent", "context", "collaboration", "documentation"]
 ---
 
-# Multi-Agent Memory System
+# Multi-Agent Memory (MAM)
 
-Sistema de persistência de conhecimento que resolve a "Amnésia de Contexto" — a perda de informação
-que ocorre quando múltiplos agentes de IA (Claude, Gemini, Cursor, Codex, etc.) trabalham no mesmo
-projeto de forma assíncrona.
+Sistema de persistência de conhecimento que resolve a **Amnésia de Contexto** — a perda de
+informação quando múltiplos agentes de IA trabalham no mesmo projeto de forma assíncrona.
 
-## Por que isso existe
+## Conceito Central
 
-Sem memória compartilhada, cada agente que entra numa tarefa:
-- Tenta ler todo o codebase para entender o estado atual (desperdiça tokens)
-- Desconhece decisões de design tomadas por outro agente (gera conflitos)
-- Pode desfazer ou contradizer implementações anteriores (cria um "Frankenstein")
-
-O diretório `/memory` é a **fonte da verdade** do projeto.
+O diretório `/memory` é a **fonte da verdade** do projeto. Todo agente lê antes de agir,
+e escreve antes de sair. O sistema usa **progressive disclosure**: o `index.md` funciona
+como router — o agente lê o índice, identifica o que importa, e carrega só isso.
 
 ---
 
 ## Protocolo de Operação
 
-### 1. CHECK-IN (Início de qualquer tarefa)
-
-Antes de escrever uma única linha de código:
+### 1. CHECK-IN (Antes de qualquer tarefa)
 
 ```
-1. Leia /memory/readme.md  → entenda as regras do sistema
-2. Leia /memory/index.md   → identifique quais memórias são relevantes para sua tarefa
-3. Carregue APENAS as memórias relevantes → não leia tudo, seja cirúrgico
-4. Leia /memory/project/context.md → se for sua primeira interação com o projeto
+1. Leia /memory/readme.md           → regras do sistema (só na primeira vez)
+2. Leia /memory/index.md            → identifique memórias relevantes
+3. Carregue APENAS o necessário     → não leia tudo, seja cirúrgico
+4. Leia /memory/project/context.md  → se for sua primeira interação
 ```
 
-O `index.md` funciona como um router de contexto. Cada entrada tem um título, uma descrição
-de 1-2 linhas, e o caminho do arquivo. Leia o índice, identifique o que importa, carregue só isso.
-
-**Exemplo:** Se a tarefa é "criar tela de login", carregue `project/design.md` (tokens de UI),
-`project/arch.md` (estrutura de pastas), e `features/auth.md` (se existir). Não carregue
-`features/billing.md`.
+**Exemplo de carregamento seletivo:**
+- Tarefa "criar tela de login" → carregue `project/design.md` + `project/arch.md` + `features/auth.md`
+- Tarefa "corrigir bug no billing" → carregue `features/billing.md` + `project/arch.md`
+- NÃO carregue `features/billing.md` se a tarefa é sobre autenticação
 
 ### 2. EXECUÇÃO (Durante a tarefa)
 
-Trabalhe normalmente, mas mantenha uma lista mental de:
-- Decisões de arquitetura ou design que você tomou
-- Componentes novos que você criou
-- Padrões que você estabeleceu ou modificou
-- Dependências que você adicionou
-- Qualquer coisa que outro agente PRECISARIA saber para não quebrar seu trabalho
+Trabalhe normalmente. Mantenha registro mental de:
+- Decisões de arquitetura ou design tomadas
+- Componentes novos criados
+- Padrões estabelecidos ou modificados
+- Dependências adicionadas
+- Qualquer coisa que outro agente PRECISARIA saber
 
 ### 3. CHECK-OUT (Fim da tarefa)
 
-Esta é a parte mais importante. Antes de encerrar:
+**Esta é a etapa mais crítica.** Antes de encerrar:
 
 ```
-1. Atualize ou crie o arquivo de feature em /memory/features/
-2. Atualize o /memory/index.md com a nova entrada (se criou arquivo novo)
-3. Se mudou algo estrutural, atualize o arquivo relevante em /memory/project/
+1. Crie ou atualize /memory/features/[feature].md
+2. Atualize /memory/index.md com a nova entrada (se criou arquivo novo)
+3. Se mudou algo estrutural → atualize /memory/project/[arquivo-relevante].md
+4. Valide: releia o index.md e confirme que está consistente
 ```
 
-**Regra de Ouro:** Se você criou algo novo ou tomou uma decisão que afeta o futuro do projeto,
-registre. Prefira registrar demais do que de menos.
+**Regra de Ouro:** Na dúvida, registre. O custo de uma memória extra é mínimo.
+O custo de um agente futuro sem contexto é alto.
+
+### Checklist de Qualidade do Check-out
+
+Antes de considerar o check-out completo, verifique:
+
+- [ ] O arquivo de feature tem Status atualizado?
+- [ ] Decisões técnicas incluem o "por quê" e alternativas descartadas?
+- [ ] A seção "Regras para o Próximo Agente" cobre armadilhas conhecidas?
+- [ ] O changelog da feature foi atualizado com data e autor?
+- [ ] O index.md reflete o estado atual (nova entrada ou status atualizado)?
+- [ ] Se houve mudança estrutural, o arquivo em /project/ foi atualizado?
 
 ---
 
@@ -87,59 +98,24 @@ registre. Prefira registrar demais do que de menos.
     └── ...
 ```
 
-### Tipos de Memória
+Para detalhes sobre cada tipo de memória e como escrever boas memórias, consulte
+`references/writing-guide.md`.
 
-**Nível de Projeto (`/project`)** — Contexto estrutural que raramente muda:
-- Stack tecnológica e versões
-- Estrutura de pastas e convenções de nomenclatura
-- Padrões de Design System (tokens, componentes base)
-- Configurações de infra e deploy
-- Regras de banco de dados e migrações
-
-**Nível de Feature (`/features`)** — Registro granular por funcionalidade:
-- O que foi implementado e por quê
-- Decisões técnicas tomadas (e alternativas descartadas)
-- Componentes criados ou modificados
-- Dependências introduzidas
-- Status atual e próximos passos
-
----
-
-## Como Escrever Boas Memórias
-
-### Formato de Feature
-
-Cada arquivo de feature segue uma estrutura consistente. Consulte os templates em
-`templates/features/` para o formato exato, mas os princípios são:
-
-1. **Título e status** — Nome da feature e se está em progresso, concluída, ou em revisão
-2. **Resumo em 2-3 linhas** — O que é e por que existe
-3. **Decisões técnicas** — O que foi decidido e qual era a alternativa
-4. **Componentes afetados** — Lista de arquivos criados ou modificados
-5. **Regras para o próximo agente** — O que NÃO fazer, o que manter, armadilhas conhecidas
-
-### Princípios de Escrita
-
-- **Seja conciso mas completo.** Cada token conta. Escreva para um agente de IA que precisa
-  entender rapidamente o que aconteceu, não para um humano que vai ler um relatório.
-- **Priorize o "por quê" sobre o "como".** Outro agente pode ler o código para ver o "como".
-  O que ele não consegue inferir é o contexto da decisão.
-- **Use listas e headers.** Facilitam o parsing por outros agentes.
-- **Registre as "anti-decisões".** "Não usamos Redux porque..." é tão valioso quanto "Usamos Zustand porque...".
+Para templates prontos de cada tipo de arquivo, consulte `assets/templates/`.
 
 ---
 
 ## Comandos Rápidos
-
-Se o usuário solicitar ações de memória, execute conforme abaixo:
 
 | Comando do usuário | Ação |
 |---|---|
 | "registra essa decisão" | Crie/atualize o arquivo de feature relevante + atualize index.md |
 | "qual o contexto do projeto?" | Leia e resuma `/memory/project/context.md` |
 | "o que já foi feito em [feature]?" | Busque no index.md e carregue o arquivo da feature |
-| "inicializa a memória" | Copie os templates para `/memory` e ajude a preencher `context.md` |
+| "inicializa a memória" | Execute o script de inicialização (veja abaixo) |
 | "atualiza o índice" | Releia todos os arquivos em `/memory` e regenere o `index.md` |
+| "valida a memória" | Execute `scripts/validate.py` para checar consistência |
+| "status do projeto" | Leia index.md e gere um resumo dos status de todas as features |
 
 ---
 
@@ -147,10 +123,35 @@ Se o usuário solicitar ações de memória, execute conforme abaixo:
 
 Para criar o sistema de memória em um projeto novo:
 
-1. Copie a pasta `templates/` desta skill para o diretório raiz do projeto como `/memory`
-2. Preencha `/memory/project/context.md` com as informações do projeto
-3. Preencha `/memory/project/arch.md` com a arquitetura atual
-4. Preencha `/memory/project/design.md` se houver Design System
-5. O `readme.md` e `index.md` já vêm com conteúdo base — ajuste conforme necessário
+```bash
+# Copie os templates para a raiz do projeto
+cp -r assets/templates/ /path/to/project/memory/
 
-Os templates estão em: `templates/` (relativo a esta skill).
+# Ou execute o script de inicialização
+python scripts/init_memory.py /path/to/project
+```
+
+Depois da cópia:
+1. Preencha `/memory/project/context.md` com informações do projeto
+2. Preencha `/memory/project/arch.md` com a arquitetura atual
+3. Preencha `/memory/project/design.md` se houver Design System
+4. Ajuste `readme.md` e `index.md` conforme necessário
+
+---
+
+## Resolução de Conflitos
+
+Se uma memória contradiz o estado atual do código:
+
+1. **O código é a verdade** — ele reflete o que está implementado
+2. **Atualize a memória** para refletir o estado real
+3. **Registre a correção** com nota explicando a divergência no changelog da feature
+
+---
+
+## Limites desta Skill
+
+- **NÃO substitui documentação de API** — use ferramentas dedicadas (Swagger, etc.)
+- **NÃO rastreia mudanças commit-a-commit** — use git para isso
+- **NÃO é um sistema de tickets** — registre decisões e contexto, não tarefas pendentes
+- **NÃO armazene secrets ou credenciais** nos arquivos de memória

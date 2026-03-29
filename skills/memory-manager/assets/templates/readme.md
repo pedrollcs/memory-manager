@@ -21,19 +21,22 @@ o conhecimento se perde entre sessões. Aqui é onde esse conhecimento é persis
 
 1. **Leia este arquivo** (você já está fazendo isso ✓)
 2. **Leia `index.md`** — é o mapa de todas as memórias disponíveis
-3. **Carregue apenas o necessário** — identifique no índice quais memórias são relevantes para sua tarefa e carregue só essas. Não leia tudo.
-4. **Se é sua primeira vez no projeto**, leia também `project/context.md` para entender a visão macro
+3. **Carregue apenas o necessário** — identifique no índice quais memórias são relevantes para sua tarefa e carregue só essas
+4. **Se é sua primeira vez no projeto**, leia também `project/context.md`
+
+> **Exemplo:** Tarefa "criar tela de pagamento" → carregue `project/design.md` + `project/arch.md` + `features/billing.md`. NÃO carregue `features/auth.md`.
 
 ### 🔴 Check-out (Antes de encerrar a tarefa)
 
-Se você criou algo novo, tomou uma decisão de arquitetura, ou mudou um comportamento existente:
+Se você criou algo novo, tomou uma decisão técnica, ou mudou um comportamento existente:
 
-1. **Crie ou atualize** o arquivo de feature em `/memory/features/nome_da_feature.md`
-2. **Atualize `index.md`** adicionando a nova entrada (se criou um arquivo novo)
-3. **Se alterou algo estrutural** (stack, pastas, deploy, design system), atualize o arquivo relevante em `/memory/project/`
+1. **Crie ou atualize** o arquivo em `/memory/features/[feature].md`
+2. **Atualize `index.md`** se criou um arquivo novo
+3. **Se alterou algo estrutural**, atualize o arquivo relevante em `/memory/project/`
+4. **Valide mentalmente:** o index.md reflete o estado atual do projeto?
 
-> **Regra de Ouro:** Na dúvida, registre. Prefira registrar demais do que de menos.
-> O custo de uma memória extra é mínimo. O custo de um agente futuro sem contexto é alto.
+> **Regra de Ouro:** Na dúvida, registre. O custo de uma memória extra é mínimo.
+> O custo de um agente futuro sem contexto é alto.
 
 ---
 
@@ -43,7 +46,7 @@ Se você criou algo novo, tomou uma decisão de arquitetura, ou mudou um comport
 
 - Decisões de arquitetura ou design e **por que** foram tomadas
 - Componentes, módulos ou serviços novos criados
-- Padrões estabelecidos que devem ser seguidos por futuros agentes
+- Padrões estabelecidos que futuros agentes devem seguir
 - Dependências adicionadas ao projeto
 - Mudanças em regras de negócio
 - Armadilhas conhecidas (bugs, limitações, workarounds)
@@ -54,14 +57,15 @@ Se você criou algo novo, tomou uma decisão de arquitetura, ou mudou um comport
 - Detalhes de implementação triviais (o código já documenta isso)
 - Bugs temporários que já foram corrigidos
 - Informações que mudam a cada commit (use git para isso)
+- **NUNCA registre secrets, credenciais, API keys ou tokens de acesso**
 
 ### Como registrar
 
-- Use Markdown com headers e listas — facilita o parsing por outros agentes
-- Seja conciso: escreva para uma IA que precisa entender rápido, não para um relatório humano
+- Markdown com headers e listas — facilita parsing por outros agentes
+- Conciso: escreva para uma IA que precisa entender rápido
 - Priorize o **"por quê"** sobre o **"como"** — o "como" está no código
-- Sempre inclua **data** (`YYYY-MM-DD`) e **autor** (nome do agente ou desenvolvedor)
-- Use o template de features como base (veja `/memory/features/` para exemplos)
+- Sempre inclua **data** (`YYYY-MM-DD`) e **autor** (nome do agente ou dev)
+- Use os templates existentes em `/memory/features/` como base
 
 ---
 
@@ -81,26 +85,27 @@ Se você criou algo novo, tomou uma decisão de arquitetura, ou mudou um comport
 
 ---
 
-## Convenções de Nomenclatura
+## Convenções
 
 - Arquivos de feature: `kebab-case.md` (ex: `user-auth.md`, `payment-flow.md`)
 - Sem espaços, sem caracteres especiais, sem acentos nos nomes de arquivo
 - Agrupe por domínio, não por sprint ou data
+- Um arquivo por feature/domínio — não por tarefa individual
 
 ---
 
 ## Conflitos
 
-Se você encontrar uma memória que contradiz o estado atual do código:
+Se você encontrar uma memória que contradiz o código atual:
 
-1. **O código é a verdade.** Ele reflete o que realmente está implementado.
+1. **O código é a verdade.** Ele reflete o que está implementado.
 2. **Atualize a memória** para refletir o estado real.
-3. **Registre a correção** com uma nota explicando a divergência.
+3. **Registre a correção** com nota no changelog da feature.
 
 ---
 
 ## Para Humanos
 
-Se você é um desenvolvedor humano lendo isso: este sistema funciona melhor quando você também
-participa. Ao tomar decisões importantes, registre-as aqui. Ao revisar PRs gerados por IA,
-verifique se a memória foi atualizada. O `/memory` só é útil se estiver atualizado.
+Se você é um desenvolvedor humano: este sistema funciona melhor quando você também participa.
+Ao tomar decisões importantes, registre-as. Ao revisar PRs gerados por IA, verifique se a
+memória foi atualizada. O `/memory` só é útil se estiver atualizado.
