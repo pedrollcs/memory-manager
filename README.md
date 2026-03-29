@@ -1,14 +1,97 @@
 # 🧠 Multi-Agent Memory (MAM)
 
-> Persistent knowledge system for projects developed by multiple AI agents.
+> Persistent knowledge system for multi-agent development. One `/memory` directory, shared by every AI.
 
 [![Agent Skills Spec](https://img.shields.io/badge/agent--skills-v1.0-blue)](https://agentskills.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/works%20with-Claude%20%7C%20Codex%20%7C%20Cursor%20%7C%20Copilot-purple)]()
+[![Install with npx](https://img.shields.io/badge/npx-skills%20add-black)](https://skills.sh)
 
-**Multi-Agent Memory (MAM)** solves the **Context Amnesia** problem. When different AIs (Claude, Gemini, Cursor, ChatGPT, Codex, etc.) work asynchronously on the same project, critical design decisions, architecture choices, and business rules get lost — leading to rework, inconsistencies, and wasted tokens.
+**MAM** solves the **Context Amnesia** problem — the loss of critical design decisions, architecture choices, and business rules that happens when multiple AI agents (Claude, Gemini, Cursor, Codex, etc.) work asynchronously on the same codebase.
 
-MAM creates a `/memory` directory in your project that serves as the **shared source of truth** for any AI agent.
+It creates a `/memory` directory in your project that serves as the **shared source of truth** for any AI agent.
+
+---
+
+## Install the Skill
+
+### One-command install (recommended)
+
+```bash
+# Auto-detects your agents and installs for all of them
+npx skills add pedrollcs/multi-agent-memory
+```
+
+### Antigravity
+
+```bash
+npx skills add pedrollcs/multi-agent-memory -a antigravity
+```
+
+Or manually:
+
+```bash
+git clone https://github.com/pedrollcs/multi-agent-memory.git
+cp -r multi-agent-memory/multi-agent-memory/ ~/.antigravity/skills/multi-agent-memory/
+```
+
+### Claude Code
+
+```bash
+# Project-level (shared via git)
+npx skills add pedrollcs/multi-agent-memory -a claude-code
+
+# Global (all your projects)
+npx skills add pedrollcs/multi-agent-memory -a claude-code -g
+```
+
+Or manually:
+
+```bash
+# Project-level
+cp -r multi-agent-memory/ .claude/skills/multi-agent-memory/
+
+# Global
+cp -r multi-agent-memory/ ~/.claude/skills/multi-agent-memory/
+```
+
+### Other Agents
+
+The skill follows the [Agent Skills spec](https://agentskills.io) — it works with any compatible agent:
+
+```bash
+# Codex
+npx skills add pedrollcs/multi-agent-memory -a codex
+
+# Cursor
+npx skills add pedrollcs/multi-agent-memory -a cursor
+
+# GitHub Copilot
+npx skills add pedrollcs/multi-agent-memory -a github-copilot
+
+# All agents at once
+npx skills add pedrollcs/multi-agent-memory --agent '*'
+```
+
+---
+
+## Initialize Memory in Your Project
+
+After installing the skill, create the `/memory` directory in your project:
+
+```bash
+# Using the mam CLI
+mam init
+
+# Or using the script directly
+python3 multi-agent-memory/scripts/init_memory.py .
+```
+
+Then fill in your project context:
+1. Edit `memory/project/context.md` — product, stack, conventions
+2. Edit `memory/project/arch.md` — folder structure, architecture
+3. Edit `memory/project/design.md` — design tokens, UI rules
+4. Remove the example features (`auth.md`, `proposals.md`)
+5. Instruct your agents to check `/memory` at the start of every session
 
 ---
 
@@ -24,7 +107,7 @@ MAM creates a `/memory` directory in your project that serves as the **shared so
             ┌──────────────┼──────────────┐
             │              │              │
       ┌─────▼─────┐ ┌─────▼─────┐ ┌─────▼─────┐
-      │  Claude   │ │  Cursor   │ │  Codex    │
+      │  Claude   │ │Antigravity│ │  Codex    │
       │           │ │           │ │           │
       │ CHECK-IN  │ │ CHECK-IN  │ │ CHECK-IN  │
       │ (read)    │ │ (read)    │ │ (read)    │
@@ -44,59 +127,6 @@ Every agent follows the **Check-in / Check-out Protocol**:
 
 ---
 
-## Installation
-
-### As an Agent Skill (recommended)
-
-Install the skill so your AI agent automatically follows the MAM protocol:
-
-**Claude Code:**
-```bash
-# Project-level (shared via git)
-cp -r skills/memory-manager/ .claude/skills/memory-manager/
-
-# Personal (all projects)
-cp -r skills/memory-manager/ ~/.claude/skills/memory-manager/
-```
-
-**OpenAI Codex:**
-```bash
-cp -r skills/memory-manager/ .codex/skills/memory-manager/
-```
-
-**GitHub Copilot / VS Code:**
-```bash
-cp -r skills/memory-manager/ .github/skills/memory-manager/
-```
-
-**Cursor:**
-```bash
-cp -r skills/memory-manager/ .cursor/skills/memory-manager/
-```
-
-**Any other agent supporting the [Agent Skills spec](https://agentskills.io):**
-Copy to the agent's skill directory. The format is cross-platform.
-
-### Initialize Memory in Your Project
-
-After installing the skill, initialize the `/memory` directory:
-
-```bash
-# Via script
-python skills/memory-manager/scripts/init_memory.py .
-
-# Or manually
-cp -r skills/memory-manager/assets/templates/ ./memory/
-```
-
-Then fill in the project context:
-1. Edit `memory/project/context.md` — product info, tech stack, conventions
-2. Edit `memory/project/arch.md` — folder structure, architecture patterns
-3. Edit `memory/project/design.md` — design tokens, components, UI rules
-4. Remove example features in `memory/features/` (auth.md, proposals.md)
-
----
-
 ## Memory Structure
 
 ```
@@ -109,63 +139,115 @@ Then fill in the project context:
 │   └── design.md      # Design system: tokens, components, UI rules
 └── /features          # Granular context per feature (changes often)
     ├── auth.md        # Authentication & authorization history
-    ├── payments.md    # Payment system decisions and state
+    ├── billing.md     # Payment system decisions and state
     └── ...
 ```
 
-### Progressive Disclosure
+The system follows **progressive disclosure** — agents load only what they need:
 
-The system follows the same progressive disclosure pattern used by the Agent Skills spec:
-
-| Level | When Loaded | What |
+| Level | When | What |
 |---|---|---|
-| Router | Always first | `index.md` — identifies which files are relevant |
+| Router | Always first | `index.md` — which files matter for this task |
 | Structural | First interaction | `project/*.md` — loaded once per session |
-| Feature | On demand | `features/*.md` — loaded only when relevant |
-
-This means agents use tokens efficiently — they never read everything, only what they need.
+| Feature | On demand | `features/*.md` — only when relevant |
 
 ---
 
-## Scripts
+## MAM CLI
 
-| Script | Purpose |
-|---|---|
-| `scripts/init_memory.py <path>` | Initialize /memory in a project |
-| `scripts/validate.py <path>` | Validate memory consistency (links, structure, quality, security) |
-| `scripts/regen_index.py <path>` | Regenerate index.md from existing files |
+The `mam` command wraps the utility scripts into a clean interface.
+
+### Setup
+
+```bash
+# Option 1: Symlink (recommended)
+chmod +x bin/mam
+sudo ln -sf "$(pwd)/bin/mam" /usr/local/bin/mam
+
+# Option 2: Shell alias
+echo 'alias mam="/path/to/multi-agent-memory/bin/mam"' >> ~/.bashrc
+source ~/.bashrc
+
+# Option 3: Add to PATH
+export PATH="$PATH:/path/to/multi-agent-memory/bin"
+```
+
+### Commands
+
+```bash
+mam init [path]       # Initialize /memory in a project (default: current dir)
+mam validate [path]   # Check consistency (links, quality, security)
+mam regen [path]      # Regenerate index.md from existing files
+mam status [path]     # Quick overview of all features and their status
+mam help              # Show help
+```
+
+### Examples
+
+```bash
+# Start a new project with memory
+cd ~/my-project
+mam init
+
+# Check if everything is consistent
+mam validate
+
+# After adding new features manually, rebuild the index
+mam regen
+
+# Quick look at what's documented
+mam status
+```
+
+`mam validate` checks 5 dimensions:
+- **Structure** — required files and directories exist
+- **Consistency** — all index.md links point to real files, all features are indexed
+- **Quality** — feature files contain required sections (Status, Resumo, Decisões)
+- **Size** — no file exceeds the 500-line recommendation
+- **Security** — no credentials or API keys leaked in memory files
 
 ---
 
-## Benefits
+## Skill Structure
 
-- **Token efficiency:** Agents don't need to read the entire codebase to understand progress
-- **Design continuity:** Prevents new agents from ignoring established patterns
-- **Decision audit trail:** Records the "why" behind decisions — something code alone doesn't explain
-- **Hybrid collaboration:** Smooth handoffs between humans and AIs
-- **Cross-platform:** Works with any AI agent that supports SKILL.md (Claude, Codex, Cursor, Copilot, etc.)
+```
+multi-agent-memory/
+├── SKILL.md                          # Skill instructions (loaded when triggered)
+├── references/
+│   └── writing-guide.md              # How to write good memories (loaded on demand)
+├── scripts/
+│   ├── init_memory.py                # Initialize /memory in a project
+│   ├── validate.py                   # Validate memory consistency
+│   └── regen_index.py                # Regenerate index.md
+└── assets/templates/                 # Templates copied during init
+    ├── readme.md                     # Protocol rules for agents
+    ├── index.md                      # Context router template
+    ├── project/{context,arch,design}.md
+    └── features/{_template,auth,proposals}.md
+```
 
 ---
 
 ## Spec Compliance
 
-This skill follows the [Agent Skills specification](https://agentskills.io) published by Anthropic (December 2025). It is compatible with any platform that supports the SKILL.md format.
+This skill follows the [Agent Skills specification](https://agentskills.io) (Anthropic, December 2025).
 
-| Feature | Status |
+| Requirement | Status |
 |---|---|
 | YAML frontmatter (name, description) | ✅ |
 | Progressive disclosure (3-level loading) | ✅ |
-| Scripts directory | ✅ |
-| References directory | ✅ |
-| Cross-platform compatibility | ✅ |
-| Negative triggers in description | ✅ |
-| Under 500 lines SKILL.md body | ✅ |
+| SKILL.md body < 500 lines | ✅ (157 lines) |
+| Description in third person | ✅ |
+| Positive + negative triggers | ✅ |
+| `scripts/` directory | ✅ |
+| `references/` directory | ✅ |
+| Cross-platform (Antigravity, Claude Code, Codex, Cursor, Copilot) | ✅ |
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
 
 ---
 

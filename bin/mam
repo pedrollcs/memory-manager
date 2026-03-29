@@ -1,0 +1,186 @@
+#!/usr/bin/env bash
+# ──────────────────────────────────────────────────────────────
+# mam — Multi-Agent Memory CLI
+# Usage: mam <command> [options]
+#
+# Commands:
+#   init [path]       Initialize /memory in a project (default: current dir)
+#   validate [path]   Validate memory consistency (default: current dir)
+#   regen [path]      Regenerate index.md from existing files
+#   status [path]     Quick overview of all features and their status
+#   help              Show this help message
+#
+# Install:
+#   chmod +x bin/mam && sudo ln -sf "$(pwd)/bin/mam" /usr/local/bin/mam
+#   Or add to your shell: alias mam="/path/to/bin/mam"
+# ──────────────────────────────────────────────────────────────
+
+set -euo pipefail
+
+# Resolve the directory where this script lives
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCRIPTS_DIR="$SKILL_ROOT/multi-agent-memory/scripts"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+version="1.1.0"
+
+usage() {
+    echo -e "${BOLD}🧠 mam${NC} v${version} — Multi-Agent Memory CLI"
+    echo ""
+    echo -e "  ${BOLD}Usage:${NC} mam <command> [path]"
+    echo ""
+    echo -e "  ${BOLD}Commands:${NC}"
+    echo -e "    ${GREEN}init${NC}      [path]   Initialize /memory in a project (default: .)"
+    echo -e "    ${GREEN}validate${NC}  [path]   Check memory consistency (links, quality, security)"
+    echo -e "    ${GREEN}regen${NC}     [path]   Regenerate index.md from existing files"
+    echo -e "    ${GREEN}status${NC}    [path]   Quick overview of all features and their status"
+    echo -e "    ${GREEN}help${NC}               Show this help message"
+    echo ""
+    echo -e "  ${BOLD}Examples:${NC}"
+    echo -e "    mam init                  # Initialize in current directory"
+    echo -e "    mam init ~/my-project     # Initialize in specific project"
+    echo -e "    mam validate              # Validate current project's memory"
+    echo -e "    mam regen                 # Rebuild index.md"
+    echo -e "    mam status                # Show feature status summary"
+    echo ""
+    echo -e "  ${BOLD}Install globally:${NC}"
+    echo -e "    chmod +x bin/mam"
+    echo -e "    sudo ln -sf \"\$(pwd)/bin/mam\" /usr/local/bin/mam"
+}
+
+# Resolve target path (default to current directory)
+resolve_path() {
+    local target="${1:-.}"
+    echo "$(cd "$target" 2>/dev/null && pwd)" || echo "$target"
+}
+
+# Find memory directory (checks both /memory and root)
+find_memory() {
+    local target="$1"
+    if [ -f "$target/memory/index.md" ]; then
+        echo "$target/memory"
+    elif [ -f "$target/index.md" ] && [ -f "$target/readme.md" ]; then
+        echo "$target"
+    else
+        echo ""
+    fi
+}
+
+cmd_init() {
+    local target
+    target="$(resolve_path "${1:-.}")"
+    echo -e "${BOLD}🧠 mam init${NC} — Initializing memory system"
+    echo ""
+    python3 "$SCRIPTS_DIR/init_memory.py" "$target"
+}
+
+cmd_validate() {
+    local target
+    target="$(resolve_path "${1:-.}")"
+    local memory_dir
+    memory_dir="$(find_memory "$target")"
+
+    if [ -z "$memory_dir" ]; then
+        echo -e "${RED}✗${NC} No /memory directory found in: $target"
+        echo -e "  Run ${GREEN}mam init${NC} first."
+        exit 1
+    fi
+
+    echo -e "${BOLD}🧠 mam validate${NC}"
+    echo ""
+    python3 "$SCRIPTS_DIR/validate.py" "$memory_dir"
+}
+
+cmd_regen() {
+    local target
+    target="$(resolve_path "${1:-.}")"
+    local memory_dir
+    memory_dir="$(find_memory "$target")"
+
+    if [ -z "$memory_dir" ]; then
+        echo -e "${RED}✗${NC} No /memory directory found in: $target"
+        echo -e "  Run ${GREEN}mam init${NC} first."
+        exit 1
+    fi
+
+    echo -e "${BOLD}🧠 mam regen${NC} — Regenerating index.md"
+    echo ""
+    python3 "$SCRIPTS_DIR/regen_index.py" "$memory_dir"
+}
+
+cmd_status() {
+    local target
+    target="$(resolve_path "${1:-.}")"
+    local memory_dir
+    memory_dir="$(find_memory "$target")"
+
+    if [ -z "$memory_dir" ]; then
+        echo -e "${RED}✗${NC} No /memory directory found in: $target"
+        exit 1
+    fi
+
+    echo -e "${BOLD}🧠 mam status${NC}"
+    echo ""
+
+    local features_dir="$memory_dir/features"
+    if [ ! -d "$features_dir" ]; then
+        echo -e "  ${YELLOW}No features documented yet.${NC}"
+        exit 0
+    fi
+
+    printf "  ${BOLD}%-30s %-12s %s${NC}\n" "Feature" "Status" "Last Updated"
+    echo "  ──────────────────────────────────────────────────────────"
+
+    for f in "$features_dir"/*.md; do
+        [ -f "$f" ] || continue
+        [[ "$(basename "$f")" == _* ]] && continue
+
+        local name
+        name="$(basename "$f" .md)"
+
+        local status="❓"
+        local updated="—"
+
+        # Extract status emoji
+        local status_line
+        status_line="$(grep -m1 '^\*\*Status:\*\*' "$f" 2>/dev/null || true)"
+        if [ -n "$status_line" ]; then
+            status="$(echo "$status_line" | grep -oP '(📋|🔨|🔄|✅|⏸️)' | head -1 || echo "❓")"
+        fi
+
+        # Extract last updated date
+        local date_line
+        date_line="$(grep -m1 '^\*\*Última atualização:\*\*' "$f" 2>/dev/null || true)"
+        if [ -n "$date_line" ]; then
+            updated="$(echo "$date_line" | grep -oP '\d{4}-\d{2}-\d{2}' || echo "—")"
+        fi
+
+        printf "  %-30s %-12s %s\n" "$name" "$status" "$updated"
+    done
+    echo ""
+}
+
+# ── Main ──────────────────────────────────────────────────────
+
+case "${1:-help}" in
+    init)     cmd_init "${2:-}"     ;;
+    validate) cmd_validate "${2:-}" ;;
+    regen)    cmd_regen "${2:-}"    ;;
+    status)   cmd_status "${2:-}"   ;;
+    help|-h|--help) usage          ;;
+    version|-v|--version) echo "mam v${version}" ;;
+    *)
+        echo -e "${RED}Unknown command:${NC} $1"
+        echo ""
+        usage
+        exit 1
+        ;;
+esac
