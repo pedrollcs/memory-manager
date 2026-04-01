@@ -1,254 +1,82 @@
-# 🧠 Multi-Agent Memory (MAM)
+# 🚀 Zeppelin Skills
 
-> Persistent knowledge system for multi-agent development. One `/memory` directory, shared by every AI.
+> O hub oficial de skills avançadas para agentes de IA da **Zeppelin IA**.
 
 [![Agent Skills Spec](https://img.shields.io/badge/agent--skills-v1.0-blue)](https://agentskills.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Install with npx](https://img.shields.io/badge/npx-skills%20add-black)](https://skills.sh)
 
-**MAM** solves the **Context Amnesia** problem — the loss of critical design decisions, architecture choices, and business rules that happens when multiple AI agents (Claude, Gemini, Cursor, Codex, etc.) work asynchronously on the same codebase.
+**Zeppelin Skills** é um repositório centralizado de extensões e ferramentas poderosas projetadas para turbinar o fluxo de trabalho de desenvolvedores que utilizam agentes de IA (como **Antigravity**, **Claude Code**, **Cursor**, **Gemini**, entre outros).
 
-It creates a `/memory` directory in your project that serves as the **shared source of truth** for any AI agent.
+Em vez de repositórios isolados, unificamos nossas ferramentas aqui para facilitar a descoberta, instalação e manutenção.
 
 ---
 
-## Install the Skill
+## 🛠️ Como Instalar uma Skill
 
-### One-command install (recommended)
+Você pode adicionar qualquer skill deste repositório ao seu agente favorito usando o comando `skills add`.
+
+### Método Recomendado (npx)
 
 ```bash
-# Auto-detects your agents and installs for all of them
-npx skills add pedrollcs/multi-agent-memory
+# Adiciona a skill selecionada ao seu ambiente
+npx skills add pedrollcs/zeppelin-skills/<nome-da-skill>
 ```
 
-### Antigravity
+*(Exemplo: `npx skills add pedrollcs/zeppelin-skills/multi-agent-memory`)*
 
-```bash
-npx skills add pedrollcs/multi-agent-memory -a antigravity
+---
+
+## 📂 Skills Disponíveis
+
+### 1. 🧠 Multi-Agent Memory (MAM)
+> **Status:** ✅ Estável | **Local:** `skills/multi-agent-memory`
+
+Resolve o problema da **Amnésia de Contexto** em projetos onde múltiplos agentes trabalham de forma assíncrona. Cria um diretório `/memory` compartilhado que serve como a "fonte da verdade" exclusiva.
+
+*   **Comando CLI:** `mam init`, `mam validate`.
+*   **Protocolo:** Check-in / Check-out para persistência de conhecimento.
+
+### 2. 🎨 Design System (Em breve)
+> **Status:** 🔨 Em desenvolvimento | **Local:** `skills/design-system`
+
+Componentes e tokens visuais pré-configurados para acelerar a criação de interfaces premium com a estética Zeppelin.
+
+---
+
+## 🏛️ Estrutura do Repositório
+
+Todas as nossas skills seguem a especificação [Agent Skills](https://agentskills.io), garantindo compatibilidade multiplataforma:
+
 ```
-
-Or manually:
-
-```bash
-git clone https://github.com/pedrollcs/multi-agent-memory.git
-cp -r multi-agent-memory/multi-agent-memory/ ~/.antigravity/skills/multi-agent-memory/
-```
-
-### Claude Code
-
-```bash
-# Project-level (shared via git)
-npx skills add pedrollcs/multi-agent-memory -a claude-code
-
-# Global (all your projects)
-npx skills add pedrollcs/multi-agent-memory -a claude-code -g
-```
-
-Or manually:
-
-```bash
-# Project-level
-cp -r multi-agent-memory/ .claude/skills/multi-agent-memory/
-
-# Global
-cp -r multi-agent-memory/ ~/.claude/skills/multi-agent-memory/
-```
-
-### Other Agents
-
-The skill follows the [Agent Skills spec](https://agentskills.io) — it works with any compatible agent:
-
-```bash
-# Codex
-npx skills add pedrollcs/multi-agent-memory -a codex
-
-# Cursor
-npx skills add pedrollcs/multi-agent-memory -a cursor
-
-# GitHub Copilot
-npx skills add pedrollcs/multi-agent-memory -a github-copilot
-
-# All agents at once
-npx skills add pedrollcs/multi-agent-memory --agent '*'
+zeppelin-skills/
+├── skills/
+│   ├── multi-agent-memory/    # Skill de Gerenciamento de Memória
+│   │   ├── SKILL.md           # Definição e Triggers
+│   │   ├── scripts/           # Ferramentas de automação
+│   │   └── assets/            # Templates e recursos
+│   └── (novas-skills)/        # Futuras adições
+├── bin/                       # Executáveis globais e utilitários
+└── README.md                  # Este guia
 ```
 
 ---
 
-## Initialize Memory in Your Project
+## 🤝 Contribuindo
 
-After installing the skill, create the `/memory` directory in your project:
+Para adicionar uma nova skill a este repositório:
 
-```bash
-# Using the mam CLI
-mam init
-
-# Or using the script directly
-python3 multi-agent-memory/scripts/init_memory.py .
-```
-
-Then fill in your project context:
-1. Edit `memory/project/context.md` — product, stack, conventions
-2. Edit `memory/project/arch.md` — folder structure, architecture
-3. Edit `memory/project/design.md` — design tokens, UI rules
-4. Remove the example features (`auth.md`, `proposals.md`)
-5. Instruct your agents to check `/memory` at the start of every session
+1.  Crie uma nova subpasta em `/skills/`.
+2.  Implemente o arquivo `SKILL.md` seguindo o padrão YAML.
+3.  Inclua os scripts e referências necessários.
+4.  Submeta um Pull Request.
 
 ---
 
-## How It Works
+## 📄 Licença
 
-```
-                    ┌─────────────┐
-                    │  /memory    │
-                    │  (Source of │
-                    │   Truth)    │
-                    └──────┬──────┘
-                           │
-            ┌──────────────┼──────────────┐
-            │              │              │
-      ┌─────▼─────┐ ┌─────▼─────┐ ┌─────▼─────┐
-      │  Claude   │ │Antigravity│ │  Codex    │
-      │           │ │           │ │           │
-      │ CHECK-IN  │ │ CHECK-IN  │ │ CHECK-IN  │
-      │ (read)    │ │ (read)    │ │ (read)    │
-      │           │ │           │ │           │
-      │ EXECUTE   │ │ EXECUTE   │ │ EXECUTE   │
-      │           │ │           │ │           │
-      │ CHECK-OUT │ │ CHECK-OUT │ │ CHECK-OUT │
-      │ (write)   │ │ (write)   │ │ (write)   │
-      └───────────┘ └───────────┘ └───────────┘
-```
-
-Every agent follows the **Check-in / Check-out Protocol**:
-
-1. **🟢 CHECK-IN:** Read `index.md` → load only relevant memory files → understand context
-2. **🟡 EXECUTE:** Build the feature, tracking decisions made along the way
-3. **🔴 CHECK-OUT:** Update or create memory files → update index → persist knowledge
+Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
 ---
 
-## Memory Structure
-
-```
-/memory
-├── readme.md          # Protocol rules for AI agents
-├── index.md           # Context router — agents read this FIRST
-├── /project           # Structural context (rarely changes)
-│   ├── context.md     # Business overview, tech stack, conventions
-│   ├── arch.md        # Architecture, folder structure, deploy
-│   └── design.md      # Design system: tokens, components, UI rules
-└── /features          # Granular context per feature (changes often)
-    ├── auth.md        # Authentication & authorization history
-    ├── billing.md     # Payment system decisions and state
-    └── ...
-```
-
-The system follows **progressive disclosure** — agents load only what they need:
-
-| Level | When | What |
-|---|---|---|
-| Router | Always first | `index.md` — which files matter for this task |
-| Structural | First interaction | `project/*.md` — loaded once per session |
-| Feature | On demand | `features/*.md` — only when relevant |
-
----
-
-## MAM CLI
-
-The `mam` command wraps the utility scripts into a clean interface.
-
-### Setup
-
-```bash
-# Option 1: Symlink (recommended)
-chmod +x bin/mam
-sudo ln -sf "$(pwd)/bin/mam" /usr/local/bin/mam
-
-# Option 2: Shell alias
-echo 'alias mam="/path/to/multi-agent-memory/bin/mam"' >> ~/.bashrc
-source ~/.bashrc
-
-# Option 3: Add to PATH
-export PATH="$PATH:/path/to/multi-agent-memory/bin"
-```
-
-### Commands
-
-```bash
-mam init [path]       # Initialize /memory in a project (default: current dir)
-mam validate [path]   # Check consistency (links, quality, security)
-mam regen [path]      # Regenerate index.md from existing files
-mam status [path]     # Quick overview of all features and their status
-mam help              # Show help
-```
-
-### Examples
-
-```bash
-# Start a new project with memory
-cd ~/my-project
-mam init
-
-# Check if everything is consistent
-mam validate
-
-# After adding new features manually, rebuild the index
-mam regen
-
-# Quick look at what's documented
-mam status
-```
-
-`mam validate` checks 5 dimensions:
-- **Structure** — required files and directories exist
-- **Consistency** — all index.md links point to real files, all features are indexed
-- **Quality** — feature files contain required sections (Status, Resumo, Decisões)
-- **Size** — no file exceeds the 500-line recommendation
-- **Security** — no credentials or API keys leaked in memory files
-
----
-
-## Skill Structure
-
-```
-multi-agent-memory/
-├── SKILL.md                          # Skill instructions (loaded when triggered)
-├── references/
-│   └── writing-guide.md              # How to write good memories (loaded on demand)
-├── scripts/
-│   ├── init_memory.py                # Initialize /memory in a project
-│   ├── validate.py                   # Validate memory consistency
-│   └── regen_index.py                # Regenerate index.md
-└── assets/templates/                 # Templates copied during init
-    ├── readme.md                     # Protocol rules for agents
-    ├── index.md                      # Context router template
-    ├── project/{context,arch,design}.md
-    └── features/{_template,auth,proposals}.md
-```
-
----
-
-## Spec Compliance
-
-This skill follows the [Agent Skills specification](https://agentskills.io) (Anthropic, December 2025).
-
-| Requirement | Status |
-|---|---|
-| YAML frontmatter (name, description) | ✅ |
-| Progressive disclosure (3-level loading) | ✅ |
-| SKILL.md body < 500 lines | ✅ (157 lines) |
-| Description in third person | ✅ |
-| Positive + negative triggers | ✅ |
-| `scripts/` directory | ✅ |
-| `references/` directory | ✅ |
-| Cross-platform (Antigravity, Claude Code, Codex, Cursor, Copilot) | ✅ |
-
----
-
-## License
-
-MIT — see [LICENSE](LICENSE).
-
----
-
-*Built to orchestrate knowledge in the age of AI-assisted software engineering.*
+*Criado para orquestrar conhecimento na era da engenharia de software assistida por IA.*

@@ -20,7 +20,7 @@ set -euo pipefail
 # Resolve the directory where this script lives
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SCRIPTS_DIR="$SKILL_ROOT/multi-agent-memory/scripts"
+SCRIPTS_DIR="$SKILL_ROOT/skills/multi-agent-memory/scripts"
 
 # Colors
 RED='\033[0;31m'
